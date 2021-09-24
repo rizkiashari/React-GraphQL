@@ -1,18 +1,22 @@
 import { useMutation, useQuery } from "@apollo/client";
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { DELETE_BOOK, GET_BOOKS } from "../../config/books";
 
 const List = () => {
+  const [id, setId] = useState(null);
   const { loading, error, data } = useQuery(GET_BOOKS, {
     fetchPolicy: "no-cache",
   });
-  const [deleteBook, { loading: loadingDelete, error: errorDelete }] =
-    useMutation(DELETE_BOOK);
+  const [deleteBook, { loading: loadingDelete }] = useMutation(DELETE_BOOK, {
+    refetchQueries: [GET_BOOKS],
+    onError: (error) => {
+      console.log(error.networkError);
+    },
+  });
 
-  if (loading || loadingDelete) return <p>Loading...</p>;
-  if (error || errorDelete)
-    return error?.graphQLErrors.map((error) => error) ?? error.message;
+  if (loading) return <p>Loading...</p>;
+  if (error) return error?.graphQLErrors.map((error) => error) ?? error.message;
   if (data.getAllBooks.length === 0) {
     return (
       <>
@@ -21,8 +25,11 @@ const List = () => {
       </>
     );
   }
-  const deleteData = (id) => {
-    deleteBook();
+  const deleteData = (_id) => {
+    setId(_id);
+    deleteBook({
+      variables: { _id },
+    });
   };
 
   return (
@@ -48,8 +55,8 @@ const List = () => {
                 to={`/book/${book._id}/edit`}>
                 Edit
               </Link>
-              <button type='button' onClick={deleteData(book._id)}>
-                Delete
+              <button type='button' onClick={() => deleteData(book._id)}>
+                {id === book._id && loadingDelete ? "Deleting..." : "Delete"}
               </button>
             </div>
           </div>

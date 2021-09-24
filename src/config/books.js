@@ -77,9 +77,7 @@ export const UPDATE_BOOK = gql`
 
 export const DELETE_BOOK = gql`
   mutation DeleteBook($_id: ID!) {
-    deleteBook(_id: $_id) {
-      true
-    }
+    deleteBook(_id: $_id)
   }
 `;
 
